@@ -1,0 +1,44 @@
+graph TD
+    %% Detailed Transformer Architecture
+    A["Input ABR Sequence<br/>[batch, 200, 1]"] --> B["Positional Encoding<br/>Sinusoidal Embeddings"]
+    B --> C["Input Embedding<br/>1 → 64 dimensions"]
+    
+    %% Encoder Stack
+    C --> D["Transformer Encoder Layer 1"]
+    D --> E["Transformer Encoder Layer 2"]
+    
+    E --> K["Global Average Pooling<br/>[batch, 200, 64] → [batch, 64]"]
+    
+    %% VAE Processing
+    K --> L["Combined with Static Features<br/>[batch, 144]"]
+    L --> M["VAE Encoder<br/>144 → 64 → 32"]
+    M --> N["μ and σ² outputs<br/>[batch, 32] each"]
+    N --> O["Sampling z ~ N(μ, σ²)<br/>[batch, 32]"]
+    
+    %% Decoder Path
+    O --> P["Condition Concatenation<br/>[batch, 64]"]
+    P --> Q["VAE Decoder<br/>64 → 64 → 128"]
+    Q --> R["Reshape for Sequence<br/>[batch, 128] → [batch, 200, 64]"]
+    
+    %% Decoder Stack
+    R --> S["Transformer Decoder Layer 1"]
+    S --> T["Transformer Decoder Layer 2"]
+    
+    T --> BB["Output Projection<br/>64 → 1"]
+    BB --> CC["Reconstructed ABR<br/>[batch, 200, 1]"]
+    
+    %% Model Parameters
+    DD["Model Statistics<br/>📊 Total Parameters: 520,335<br/>📏 Model Size: 2.1 MB<br/>⚡ Latent Dimension: 32<br/>🔄 Sequence Length: 200<br/>🎯 Attention Heads: 4<br/>📚 Transformer Layers: 2+2"]
+    
+    %% Styling
+    classDef input fill:#e3f2fd
+    classDef transformer fill:#f1f8e9
+    classDef vae fill:#fff8e1
+    classDef output fill:#fce4ec
+    classDef stats fill:#f3e5f5
+
+    class A,B,C input
+    class D,E,S,T transformer
+    class K,L,M,N,O,P,Q,R vae
+    class BB,CC output
+    class DD stats

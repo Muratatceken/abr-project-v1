@@ -1,0 +1,136 @@
+# Advanced CVAE Configuration - Improved Version
+# Addresses static parameter generation and signal quality issues
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: true  # Enable augmentation
+  noise_std: 0.005    # Reduced noise
+  time_shift_max: 3   # Reduced shift
+
+# Model configuration
+model:
+  type: "advanced"
+  static_dim: 4
+  masked_features_dim: 48  # Increased
+  
+  # Hierarchical latent dimensions
+  waveform_latent_dim: 32  # Increased
+  peak_latent_dim: 16      # Increased
+  
+  condition_dim: 64
+  hidden_dim: 128
+  
+  # Architecture parameters
+  num_encoder_layers: 3    # Increased
+  num_decoder_layers: 3    # Increased  
+  num_heads: 4
+  dropout: 0.05           # Reduced dropout
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.02  # Reduced
+
+# Training configuration
+training:
+  epochs: 20              # More epochs
+  batch_size: 8
+  
+  # Hierarchical beta values - better balancing
+  beta_waveform: 0.8
+  beta_peak: 0.3
+  
+  # Beta annealing
+  initial_beta: 0.0
+  final_beta: 0.8
+  beta_annealing_epochs: 15  # Longer annealing
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adamw"
+    lr: 0.0005           # Lower learning rate
+    weight_decay: 0.01   # Higher regularization
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: true
+    type: "cosine"
+    min_lr: 1e-6
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 8
+    min_delta: 0.01
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 1.0        # Less aggressive clipping
+  
+  # Checkpointing
+  save_every_n_epochs: 5
+  save_best_only: true
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 2
+  mixed_precision: false
+  compile_model: false
+
+# Loss weighting for better training
+loss_weights:
+  abr_reconstruction: 1.0
+  static_params: 2.0      # Increase static param importance
+  peak_prediction: 1.5    # Increase peak importance
+  masked_features: 0.5
+
+# Logging and monitoring
+logging:
+  log_every_n_steps: 25
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 5
+  num_generated_samples: 6
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: true
+    log_histograms: false
+    log_embeddings: false
+  
+  # Wandb logging
+  wandb:
+    enabled: false
+
+# Generation configuration
+generation:
+  num_samples: 8
+  temperature: 1.0
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.3  # Lower threshold
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: true      # Enable for monitoring
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# No workers for CPU stability
+num_workers: 0
+
+# Force CPU
+device: "cpu" 

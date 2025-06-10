@@ -1,0 +1,47 @@
+graph TD
+    %% Training Pipeline
+    A["ABR Dataset<br/>📊 22,746 samples<br/>📈 Train: 15,922<br/>📉 Val: 3,411<br/>🧪 Test: 3,413"] --> B["Data Preprocessing"]
+    
+    B --> C["Batch Creation<br/>Batch Size: 32<br/>Sequence Length: 200"]
+    
+    %% Training Loop
+    C --> D["Forward Pass"]
+    D --> E["Loss Computation"]
+    E --> F["Backward Pass"]
+    F --> G["Optimizer Step<br/>Adam LR: 0.0001"]
+    G --> H["Validation"]
+    
+    %% Loss Components
+    E --> I["ABR Reconstruction Loss<br/>MSE(original, reconstructed)"]
+    E --> J["Masked Features Loss<br/>Latency + Amplitude"]
+    E --> K["KL Divergence Loss<br/>β-annealing: 0.0 → 0.005"]
+    
+    I --> L["Total Loss<br/>Weighted Combination"]
+    J --> L
+    K --> L
+    
+    %% Training Progress
+    H --> M["Epoch Progress<br/>🎯 Current: 6/80<br/>⏱️ Time: ~1.7 min/epoch<br/>📈 Val Loss: 76.14 → 63.80<br/>✅ Consistent Improvement"]
+    
+    M --> N{"Early Stopping?<br/>Patience: 15 epochs"}
+    N -->|No| D
+    N -->|Yes| O["Training Complete"]
+    
+    %% Checkpointing
+    H --> P["Best Model Saving<br/>💾 Auto-checkpoint<br/>📊 TensorBoard Logging<br/>📈 Training History"]
+    
+    %% Current Status
+    Q["Current Training Status<br/>🚀 Model: 520k parameters<br/>⚡ Speed: 5.2 it/s<br/>📉 Stable convergence<br/>🎯 Beta: 0.000033<br/>📊 KL Loss: 39.44"]
+    
+    %% Styling
+    classDef data fill:#e8f5e8
+    classDef training fill:#fff3e0
+    classDef loss fill:#ffebee
+    classDef progress fill:#e1f5fe
+    classDef status fill:#f3e5f5
+
+    class A,B,C data
+    class D,F,G,H training
+    class I,J,K,L loss
+    class M,N,O,P progress
+    class Q status

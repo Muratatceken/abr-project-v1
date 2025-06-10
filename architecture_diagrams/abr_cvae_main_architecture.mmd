@@ -1,0 +1,82 @@
+graph TD
+    %% Input Data
+    A["ABR Time Series<br/>[batch, 200]"] --> B["Time Series Encoder"]
+    C["Static Parameters<br/>Age, Intensity, Rate, Hearing Loss<br/>[batch, 4]"] --> D["Static Encoder"]
+    E["Latency Data<br/>Wave I, III, V<br/>[batch, 3]"] --> F["Latency Encoder"]
+    G["Amplitude Data<br/>Wave I, III, V<br/>[batch, 3]"] --> H["Amplitude Encoder"]
+    I["Masks<br/>Missing Data Indicators<br/>[batch, 6]"] --> J["Mask Processor"]
+
+    %% Encoders
+    B --> K["Transformer Encoder<br/>2 Layers, 4 Heads<br/>Hidden: 64"]
+    D --> L["Linear Layer<br/>4 → 32"]
+    F --> M["Linear Layer<br/>3 → 16"]
+    H --> N["Linear Layer<br/>3 → 16"]
+    J --> O["Mask Embedding<br/>6 → 16"]
+
+    %% Feature Fusion
+    K --> P["Time Series Features<br/>[batch, 64]"]
+    L --> Q["Static Features<br/>[batch, 32]"]
+    M --> R["Latency Features<br/>[batch, 16]"]
+    N --> S["Amplitude Features<br/>[batch, 16]"]
+    O --> T["Mask Features<br/>[batch, 16]"]
+
+    %% Concatenation
+    P --> U["Feature Concatenation<br/>[batch, 144]"]
+    Q --> U
+    R --> U
+    S --> U
+    T --> U
+
+    %% VAE Core
+    U --> V["Encoder Network<br/>Linear: 144 → 64 → 32"]
+    V --> W["Mean μ<br/>[batch, 32]"]
+    V --> X["Log Variance σ²<br/>[batch, 32]"]
+    
+    W --> Y["Reparameterization<br/>z = μ + σ * ε<br/>ε ~ N(0,1)"]
+    X --> Y
+    
+    Y --> Z["Latent Code z<br/>[batch, 32]"]
+
+    %% Condition Processing
+    Q --> AA["Condition Network<br/>32 → 32"]
+    AA --> BB["Condition Embedding<br/>[batch, 32]"]
+
+    %% Decoder
+    Z --> CC["Latent + Condition<br/>[batch, 64]"]
+    BB --> CC
+    CC --> DD["Decoder Network<br/>Linear: 64 → 64 → 128"]
+    
+    %% Output Branches
+    DD --> EE["ABR Reconstruction<br/>Transformer Decoder<br/>2 Layers, 4 Heads"]
+    DD --> FF["Masked Features Decoder<br/>Linear: 128 → 64"]
+    
+    EE --> GG["Reconstructed ABR<br/>[batch, 200]"]
+    FF --> HH["Reconstructed Latency<br/>[batch, 3]"]
+    FF --> II["Reconstructed Amplitude<br/>[batch, 3]"]
+
+    %% Loss Computation
+    GG --> JJ["ABR Reconstruction Loss<br/>MSE(original, reconstructed)"]
+    HH --> KK["Latency Reconstruction Loss<br/>MSE with masking"]
+    II --> LL["Amplitude Reconstruction Loss<br/>MSE with masking"]
+    W --> MM["KL Divergence Loss<br/>KL(q(z|x) || p(z))"]
+    X --> MM
+
+    JJ --> NN["Total Loss<br/>α*ABR + β*Latency + γ*Amplitude + δ*KL"]
+    KK --> NN
+    LL --> NN
+    MM --> NN
+
+    %% Styling
+    classDef input fill:#e1f5fe
+    classDef encoder fill:#f3e5f5
+    classDef vae fill:#fff3e0
+    classDef decoder fill:#e8f5e8
+    classDef output fill:#fce4ec
+    classDef loss fill:#ffebee
+
+    class A,C,E,G,I input
+    class B,D,F,H,J,K,L,M,N,O encoder
+    class V,W,X,Y,Z,AA,BB vae
+    class CC,DD,EE,FF decoder
+    class GG,HH,II output
+    class JJ,KK,LL,MM,NN loss

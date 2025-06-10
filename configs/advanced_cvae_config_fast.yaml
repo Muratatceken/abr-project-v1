@@ -1,0 +1,134 @@
+# Advanced CVAE Configuration - Fast Training
+# Optimized for speed while maintaining good results
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: false    # Disable for speed
+  noise_std: 0.01
+  time_shift_max: 3
+
+# Model configuration - Smaller but efficient
+model:
+  type: "advanced"
+  static_dim: 4
+  masked_features_dim: 32  # Reduced
+  
+  # Compact hierarchical latent dimensions
+  waveform_latent_dim: 24  # Smaller
+  peak_latent_dim: 12      # Smaller
+  
+  condition_dim: 48        # Reduced
+  hidden_dim: 96           # Much smaller
+  
+  # Minimal architecture for speed
+  num_encoder_layers: 2    # Reduced
+  num_decoder_layers: 2    # Reduced
+  num_heads: 4             # Reduced
+  dropout: 0.05            # Lower dropout
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.02
+
+# Training configuration - Fast convergence
+training:
+  epochs: 12               # Much shorter
+  batch_size: 16           # Larger batches for efficiency
+  
+  # Hierarchical beta values - faster annealing
+  beta_waveform: 0.4       # Lower for faster training
+  beta_peak: 0.2           # Lower for faster training
+  
+  # Fast beta annealing
+  initial_beta: 0.0
+  final_beta: 0.4
+  beta_annealing_epochs: 8  # Very fast annealing
+  
+  # Optimizer configuration - aggressive but stable
+  optimizer:
+    type: "adamw"
+    lr: 0.001              # Higher LR for faster convergence
+    weight_decay: 0.01     # Higher regularization to prevent overfitting
+    betas: [0.9, 0.95]
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: true
+    type: "cosine"
+    min_lr: 1e-5
+  
+  # Early stopping - aggressive
+  early_stopping:
+    enabled: true
+    patience: 4            # Stop early if no improvement
+    min_delta: 0.02
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 1.0
+  
+  # Checkpointing
+  save_every_n_epochs: 3
+  save_best_only: true
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 1  # No accumulation for speed
+  mixed_precision: false
+  compile_model: false
+
+# Simplified loss weighting
+loss_weights:
+  abr_reconstruction: 1.0
+  static_params: 1.0      # Balanced
+  peak_prediction: 1.0    # Balanced
+  masked_features: 0.2
+
+# Minimal logging for speed
+logging:
+  log_every_n_steps: 100   # Less frequent logging
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 6  # Less frequent
+  num_generated_samples: 4
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: false         # Disable for speed
+    log_histograms: false
+    log_embeddings: false
+  
+  # Wandb logging
+  wandb:
+    enabled: false
+
+# Generation configuration
+generation:
+  num_samples: 8
+  temperature: 1.0
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.4
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: false    # Disable for speed
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# CPU training - optimized
+num_workers: 0
+device: "cpu" 

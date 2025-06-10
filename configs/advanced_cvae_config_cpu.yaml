@@ -1,0 +1,129 @@
+# Advanced CVAE Configuration - CPU Only Version
+# CPU configuration for training on M1/M2 Macs
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: false
+  noise_std: 0.01
+  time_shift_max: 5
+
+# Model configuration
+model:
+  type: "advanced"
+  static_dim: 4
+  masked_features_dim: 32
+  
+  # Small hierarchical latent dimensions
+  waveform_latent_dim: 24
+  peak_latent_dim: 12
+  
+  condition_dim: 48
+  hidden_dim: 96
+  
+  # Very small architecture for CPU
+  num_encoder_layers: 2
+  num_decoder_layers: 2
+  num_heads: 4
+  dropout: 0.1
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.05
+
+# Training configuration
+training:
+  epochs: 5  # Very small test
+  batch_size: 4  # Very small batch
+  
+  # Hierarchical beta values
+  beta_waveform: 0.3
+  beta_peak: 0.15
+  
+  # Beta annealing
+  initial_beta: 0.0
+  final_beta: 0.3
+  beta_annealing_epochs: 3
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adam"
+    lr: 0.001
+    weight_decay: 0.001
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: false
+    type: "cosine"
+    min_lr: 1e-6
+  
+  # Early stopping
+  early_stopping:
+    enabled: false
+    patience: 30
+    min_delta: 0.001
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 0.5
+  
+  # Checkpointing
+  save_every_n_epochs: 2
+  save_best_only: true
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 4  # Simulate larger batch
+  mixed_precision: false
+  compile_model: false
+
+# Logging and monitoring
+logging:
+  log_every_n_steps: 50
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 2
+  num_generated_samples: 4
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: true
+    log_histograms: false
+    log_embeddings: false
+  
+  # Wandb logging
+  wandb:
+    enabled: false
+
+# Generation configuration
+generation:
+  num_samples: 4
+  temperature: 1.0
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.5
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: false
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# No workers for CPU
+num_workers: 0
+
+# Force CPU
+device: "cpu" 

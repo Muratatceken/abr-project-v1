@@ -1,0 +1,108 @@
+# CVAE Fast & Stable Configuration for ABR Data
+# Optimized for faster training with stable convergence
+
+# Data configuration
+data:
+  sequence_length: 200       # Length of ABR waveform sequences
+  channels: 1                # Single channel ABR data
+  train_split: 0.7          # Training data split
+  val_split: 0.15           # Validation data split
+  test_split: 0.15          # Test data split
+  random_state: 42          # Random seed for reproducibility
+  augment_train: true       # Enable data augmentation for training
+  augment_prob: 0.2         # Reduced augmentation probability
+  noise_std: 0.003          # Minimal noise for signal preservation
+  time_shift_max: 10        # Minimal time shift for ABR data
+
+# Model architecture configuration - Smaller for faster training
+model:
+  static_dim: 4             # Dimension of static parameters
+  input_dim: 1              # Input dimension (single channel)
+  latent_dim: 32            # Smaller latent dimension for faster training
+  condition_dim: 32         # Smaller condition embedding dimension
+  hidden_dim: 64            # Smaller hidden layer dimension
+  num_encoder_layers: 2     # Fewer transformer encoder layers
+  num_decoder_layers: 2     # Fewer transformer decoder layers
+  num_heads: 4              # Fewer attention heads
+  dropout: 0.1              # Standard dropout
+  sequence_length: 200      # Sequence length
+  beta: 0.0                 # Initial KL divergence weight
+
+# Training configuration - Optimized for speed and stability
+training:
+  epochs: 80                # Reduced epochs for faster completion
+  batch_size: 32            # Larger batch size for efficiency
+  initial_beta: 0.0         # Start with no KL penalty
+  final_beta: 0.005         # Much lower final beta
+  beta_annealing_epochs: 60 # Slower beta annealing
+  early_stopping_patience: 15  # Reduced patience
+  checkpoint_interval: 10   # Save checkpoint every N epochs
+  sample_interval: 20       # Generate samples every N epochs
+  log_interval: 25          # More frequent logging
+  output_dir: "outputs_fast"  # Fast training output directory
+  
+  # Optimizer configuration - Lower learning rate for stability
+  optimizer:
+    type: "adam"            # Standard Adam (faster than AdamW)
+    lr: 0.0001              # Much lower learning rate
+    weight_decay: 0.001     # Reduced weight decay
+    betas: [0.9, 0.999]     # Standard beta parameters
+    eps: 1e-8               # Adam epsilon
+  
+  # Learning rate scheduler - Conservative warmup
+  scheduler:
+    enabled: true           # Enable learning rate scheduling
+    type: "step"            # Step scheduler for predictable behavior
+    step_size: 20           # Reduce LR every 20 epochs
+    gamma: 0.8              # Reduce LR by 20%
+    min_lr: 1e-6            # Minimum learning rate
+  
+  # Gradient clipping - Conservative
+  gradient_clipping:
+    enabled: true           # Enable gradient clipping
+    max_norm: 0.3           # Lower gradient norm for stability
+
+# Advanced training settings
+advanced:
+  gradient_accumulation_steps: 1  # No gradient accumulation for speed
+  warmup_epochs: 3               # Short warmup
+  label_smoothing: 0.0           # No label smoothing
+  
+# Debug settings
+debug:
+  loss_component_tracking: false  # Disable for speed
+  check_nan: true                # Keep NaN checking
+  save_gradients: false          # Don't save gradients
+
+# Beta schedule configuration - Very gradual annealing
+beta_schedule:
+  type: "custom"
+  schedule:
+    - epoch: 0
+      beta: 0.0
+    - epoch: 15
+      beta: 0.0001
+    - epoch: 30
+      beta: 0.0005
+    - epoch: 45
+      beta: 0.002
+    - epoch: 60
+      beta: 0.005
+
+# Evaluation configuration
+evaluation:
+  num_reconstruction_samples: 200     # Reduced for speed
+  num_generation_samples: 200        # Reduced for speed
+  samples_per_condition: 2           # Minimal samples
+  num_interpolations: 3              # Minimal interpolations
+  num_latent_samples: 200            # Reduced latent samples
+
+# M1 Optimization settings
+m1_optimizations:
+  use_mps: false            # Disabled for stability
+  optimize_memory: true     # Enable memory optimizations
+  use_mixed_precision: false # Disabled for stability
+  compile_model: false      # Disabled for debugging
+
+# Data directory
+data_dir: "data/processed" 

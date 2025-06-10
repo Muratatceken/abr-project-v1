@@ -1,0 +1,73 @@
+========================================================================================================================
+STATIC PARAMETERS FOR RECONSTRUCTION EXAMPLES
+========================================================================================================================
+
+This table shows the static parameters for each sample used in reconstruction analysis.
+These parameters condition the model's generation process.
+
+DETAILED STATIC PARAMETERS:
+--------------------------------------------------------------------------------
+ sample_id    age  intensity  stimulus_rate  hear_loss age_category intensity_level hear_loss_desc
+         1  0.161     -1.845         -0.018          0        Child             Low         Normal
+         2  0.161     -1.845         -0.018          0        Child             Low         Normal
+         3  0.161     -1.845         -0.018          0        Child             Low         Normal
+         4  0.161     -1.845         -0.018          0        Child             Low         Normal
+         5  0.161      0.350         -0.018          0        Child            High         Normal
+         6  0.161      0.350         -0.018          0        Child            High         Normal
+         7  0.161      0.350         -0.018          0        Child            High         Normal
+         8  0.161      0.350         -0.018          0        Child            High         Normal
+         9  0.161      1.149         -0.018          0        Child       Very High         Normal
+        10  0.161      1.149         -0.018          0        Child       Very High         Normal
+        11  0.161      1.149         -0.018          0        Child       Very High         Normal
+        12  0.161      1.149         -0.018          0        Child       Very High         Normal
+        13  0.161      1.149         -0.018          0        Child       Very High         Normal
+        14  0.161      1.149         -0.018          0        Child       Very High         Normal
+        15  0.287     -0.448         -0.018          0        Child          Medium         Normal
+        16  0.287      0.350         -0.018          0        Child            High         Normal
+        17  0.287      0.350         -0.018          0        Child            High         Normal
+        18  0.287      0.350         -0.018          0        Child            High         Normal
+        19  0.287      1.149         -3.425          0        Child       Very High         Normal
+        20  0.287      1.149         -0.018          0        Child       Very High         Normal
+        21  0.287      1.149         -0.018          0        Child       Very High         Normal
+        22 -0.342      1.947         -0.018          3       Infant       Very High         Severe
+        23 -0.342      1.947         -0.018          3       Infant       Very High         Severe
+        24 -0.342      1.149         -0.018          3       Infant       Very High         Severe
+        25 -0.342      1.548         -0.018          3       Infant       Very High         Severe
+        26 -0.342     -1.645         -0.018          0       Infant             Low         Normal
+        27 -0.342     -1.645         -0.018          0       Infant             Low         Normal
+        28 -0.342     -1.246         -0.018          0       Infant             Low         Normal
+        29 -0.342     -1.246         -0.018          0       Infant             Low         Normal
+        30 -0.342     -1.246         -0.018          0       Infant             Low         Normal
+        31 -0.342     -1.246         -0.018          0       Infant             Low         Normal
+        32 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        33 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        34 -0.342      0.350         -0.018          0       Infant            High         Normal
+        35 -0.342      0.350         -0.018          0       Infant            High         Normal
+        36 -0.342      0.350         -0.018          0       Infant            High         Normal
+        37 -0.342      0.350         -0.018          0       Infant            High         Normal
+        38 -0.342      1.149         -0.018          0       Infant       Very High         Normal
+        39 -0.342      1.149         -0.018          0       Infant       Very High         Normal
+        40 -0.342      1.149         -0.018          0       Infant       Very High         Normal
+        41 -0.342      1.149         -0.018          0       Infant       Very High         Normal
+        42 -0.342     -2.045         -0.018          0       Infant             Low         Normal
+        43 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        44 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        45 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        46 -0.342     -0.448         -0.018          0       Infant          Medium         Normal
+        47 -0.342     -1.845         -0.018          0       Infant             Low         Normal
+        48 -0.342      0.350         -0.018          0       Infant            High         Normal
+        49 -0.342      0.350         -0.018          0       Infant            High         Normal
+        50 -0.342      0.350         -0.018          0       Infant            High         Normal
+
+SUMMARY STATISTICS:
+----------------------------------------
+Total samples: 50
+Age range: -0.342 - 0.287
+Intensity range: -2.045 - 1.947 dB
+Stimulus rate range: -3.425 - -0.018 Hz
+
+Hearing loss distribution:
+  Normal (Level 0): 46 samples (92.0%)
+  Mild (Level 1): 0 samples (0.0%)
+  Moderate (Level 2): 0 samples (0.0%)
+  Severe (Level 3): 4 samples (8.0%)

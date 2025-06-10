@@ -1,0 +1,76 @@
+# CVAE Configuration for ABR Synthetic Data Generation
+# Optimized for Apple M1/M2/M3 chips
+
+# Data configuration
+data:
+  sequence_length: 200       # Length of ABR waveform sequences
+  channels: 1                # Number of channels (single channel ABR)
+  train_split: 0.7          # Training data split
+  val_split: 0.15           # Validation data split
+  test_split: 0.15          # Test data split
+  random_state: 42          # Random seed for reproducibility
+  augment_train: true       # Enable data augmentation for training
+  augment_prob: 0.5         # Probability of applying augmentation
+  noise_std: 0.01           # Standard deviation for noise augmentation
+  time_shift_max: 50        # Maximum time shift for augmentation
+
+# Model architecture configuration
+model:
+  static_dim: 4             # Dimension of static parameters (age, intensity, stimulus_rate, hear_loss)
+  input_dim: 1              # Input dimension (single channel)
+  latent_dim: 128           # Latent space dimension
+  condition_dim: 128        # Condition embedding dimension
+  hidden_dim: 256           # Hidden layer dimension
+  num_encoder_layers: 4     # Number of transformer encoder layers
+  num_decoder_layers: 4     # Number of transformer decoder layers
+  num_heads: 8              # Number of attention heads
+  dropout: 0.1              # Dropout rate
+  sequence_length: 200      # Sequence length (should match data.sequence_length)
+  beta: 1.0                 # Initial KL divergence weight
+
+# Training configuration
+training:
+  epochs: 100               # Maximum number of training epochs
+  batch_size: 32            # Batch size (optimized for M1)
+  initial_beta: 0.0         # Initial beta for KL annealing
+  final_beta: 1.0           # Final beta for KL annealing
+  beta_annealing_epochs: 50 # Number of epochs for beta annealing
+  early_stopping_patience: 20  # Early stopping patience
+  checkpoint_interval: 10   # Save checkpoint every N epochs
+  sample_interval: 20       # Generate samples every N epochs
+  log_interval: 100         # Log metrics every N batches
+  output_dir: "outputs"     # Output directory for results
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adamw"           # Optimizer type (adamw recommended)
+    lr: 0.001               # Learning rate
+    weight_decay: 0.0001    # Weight decay for regularization
+    betas: [0.9, 0.999]     # Adam beta parameters
+    eps: 1e-8               # Adam epsilon
+  
+  # Learning rate scheduler
+  scheduler:
+    enabled: true           # Enable learning rate scheduling
+    type: "cosine"          # Scheduler type (cosine, step, plateau)
+    min_lr: 1e-6            # Minimum learning rate
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true           # Enable gradient clipping
+    max_norm: 1.0           # Maximum gradient norm
+
+# Evaluation configuration
+evaluation:
+  num_reconstruction_samples: 1000    # Number of samples for reconstruction evaluation
+  num_generation_samples: 1000       # Number of samples for generation evaluation
+  samples_per_condition: 5           # Number of samples per condition
+  num_interpolations: 10             # Number of interpolation examples
+  num_latent_samples: 1000           # Number of samples for latent space analysis
+
+# M1 Optimization settings (automatically applied)
+m1_optimizations:
+  use_mps: true             # Use Metal Performance Shaders
+  optimize_memory: true     # Enable memory optimizations
+  use_mixed_precision: true # Enable mixed precision training
+  compile_model: true       # Use torch.compile for optimization 

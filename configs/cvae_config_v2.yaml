@@ -1,0 +1,135 @@
+# CVAE Configuration V2 - Addressing Critical Training Issues
+# Based on analysis: KL collapse (467K+), zero reconstruction loss, overfitting
+
+# Data configuration - More conservative augmentation
+data:
+  sequence_length: 200       # ABR waveform length
+  channels: 1                # Single channel for simplicity
+  train_split: 0.8          # More training data
+  val_split: 0.1            # Less validation data
+  test_split: 0.1           # Less test data
+  random_state: 42          # Reproducibility
+  augment_train: false      # Disable augmentation initially
+  augment_prob: 0.1         # Very light augmentation when enabled
+  noise_std: 0.001          # Minimal noise
+  time_shift_max: 5         # Minimal time shift
+
+# Model architecture - Much smaller and simpler
+model:
+  static_dim: 4             # age, intensity, stimulus_rate, hear_loss
+  input_dim: 1              # Single channel
+  latent_dim: 32            # Much smaller latent space
+  condition_dim: 32         # Smaller condition embedding
+  hidden_dim: 64            # Much smaller hidden layers
+  num_encoder_layers: 2     # Fewer layers
+  num_decoder_layers: 2     # Fewer layers
+  num_heads: 2              # Fewer attention heads
+  dropout: 0.2              # Higher dropout for regularization
+  sequence_length: 200      # Match data
+  beta: 1.0                 # Will be overridden by scheduler
+
+# Training configuration - Focus on stability
+training:
+  epochs: 200               # More epochs for gradual learning
+  batch_size: 8             # Smaller batches for stability
+  initial_beta: 0.0         # Start with no KL penalty
+  final_beta: 0.01          # Very small final beta to prevent collapse
+  beta_annealing_epochs: 150 # Very gradual KL introduction
+  early_stopping_patience: 50  # More patience
+  checkpoint_interval: 10   # Regular checkpoints
+  sample_interval: 25       # Less frequent sampling
+  log_interval: 25          # More frequent logging
+  output_dir: "outputs"
+  
+  # Optimizer - Very conservative
+  optimizer:
+    type: "adam"            # Standard Adam (not AdamW)
+    lr: 0.0001              # Much lower learning rate
+    weight_decay: 0.0       # No weight decay initially
+    betas: [0.9, 0.999]     # Standard betas
+    eps: 1e-8
+  
+  # Learning rate scheduler - Gentle decay
+  scheduler:
+    enabled: true
+    type: "step"            # Step decay instead of cosine
+    step_size: 50           # Decay every 50 epochs
+    gamma: 0.8              # Gentle decay
+    min_lr: 1e-6
+  
+  # Gradient clipping - Very conservative
+  gradient_clipping:
+    enabled: true
+    max_norm: 0.1           # Very tight clipping
+
+# Loss configuration - Prevent KL collapse
+loss:
+  reconstruction_weight: 10.0   # Emphasize reconstruction
+  kl_weight_schedule: "linear"
+  kl_warmup_epochs: 100        # Long warmup
+  reconstruction_loss: "mse"
+  kl_free_bits: 2.0           # Higher free bits
+  kl_tolerance: 0.5           # KL tolerance threshold
+
+# Regularization - Strong regularization
+regularization:
+  spectral_norm: false
+  batch_norm: true
+  layer_norm: true
+  label_smoothing: 0.0      # No label smoothing for regression
+  l2_reg: 0.001            # L2 regularization
+
+# Evaluation configuration
+evaluation:
+  num_reconstruction_samples: 100
+  num_generation_samples: 100
+  samples_per_condition: 2
+  num_interpolations: 3
+  num_latent_samples: 100
+  evaluation_interval: 25
+
+# M1 Optimization - Disabled for stability
+m1_optimizations:
+  use_mps: false
+  optimize_memory: false
+  use_mixed_precision: false
+  compile_model: false
+
+# Advanced training - Simplified
+advanced:
+  gradient_accumulation_steps: 1  # No accumulation
+  ema_decay: 0.999
+  use_ema: false                  # Disable EMA initially
+  cyclical_beta: false
+  warmup_epochs: 20              # Learning rate warmup
+
+# Debugging and monitoring
+debug:
+  log_gradients: true
+  log_weights: true
+  check_nan: true
+  gradient_monitoring: true
+  loss_component_tracking: true
+
+# Data preprocessing - Minimal processing
+preprocessing:
+  normalize_inputs: true
+  standardize_targets: false    # Don't standardize initially
+  clip_outliers: false         # Don't clip initially
+  outlier_threshold: 5.0
+
+# Model initialization
+initialization:
+  weight_init: "xavier_uniform"
+  bias_init: "zeros"
+  gain: 1.0
+
+# Beta scheduling - Custom schedule to prevent collapse
+beta_schedule:
+  type: "custom"
+  schedule: [
+    {"epoch": 0, "beta": 0.0},
+    {"epoch": 50, "beta": 0.001},
+    {"epoch": 100, "beta": 0.005},
+    {"epoch": 150, "beta": 0.01}
+  ] 

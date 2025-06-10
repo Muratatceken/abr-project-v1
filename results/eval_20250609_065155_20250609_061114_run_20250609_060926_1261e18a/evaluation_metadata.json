@@ -1,0 +1,23 @@
+{
+  "evaluation_timestamp": "2025-06-09T06:51:55.386250",
+  "model_path": "outputs_fast/checkpoints/best_model.pth",
+  "model_identifier": "20250609_061114_run_20250609_060926_1261e18a",
+  "evaluation_args": {
+    "model": "outputs_fast/checkpoints/best_model.pth",
+    "config": "outputs/config.json",
+    "data": "data/processed/abr_processed_data.pkl",
+    "output_dir": "results",
+    "device": "cpu",
+    "comprehensive": true,
+    "test_generation": true,
+    "n_samples": 100,
+    "generation_samples": 50
+  },
+  "model_info": {
+    "epoch": 11,
+    "best_val_loss": 63.53814611702322,
+    "run_id": "run_20250609_060926_1261e18a",
+    "training_timestamp": "20250609_061114",
+    "total_parameters": 536335
+  }
+}

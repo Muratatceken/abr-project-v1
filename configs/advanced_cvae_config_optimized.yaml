@@ -1,0 +1,134 @@
+# Advanced CVAE Configuration - Optimized for Efficient Training
+# Balanced configuration for good results without excessive training time
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: true
+  noise_std: 0.01
+  time_shift_max: 5
+
+# Model configuration
+model:
+  type: "advanced"
+  static_dim: 4
+  masked_features_dim: 48
+  
+  # Optimized hierarchical latent dimensions
+  waveform_latent_dim: 40  # Balanced size
+  peak_latent_dim: 20      # Balanced size
+  
+  condition_dim: 80        # Optimized size
+  hidden_dim: 160          # Good balance
+  
+  # Architecture parameters
+  num_encoder_layers: 3
+  num_decoder_layers: 4    # Slightly more for better generation
+  num_heads: 8
+  dropout: 0.1
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.05
+
+# Training configuration
+training:
+  epochs: 25               # Focused training duration
+  batch_size: 12           # Larger batch for stability
+  
+  # Hierarchical beta values - optimized progression
+  beta_waveform: 0.6       # Moderate regularization
+  beta_peak: 0.3           # Lighter for complex peak learning
+  
+  # Beta annealing - faster warmup
+  initial_beta: 0.0
+  final_beta: 0.6
+  beta_annealing_epochs: 15  # Faster annealing
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adamw"
+    lr: 0.0003            # Lower for stability
+    weight_decay: 0.005   # Moderate regularization
+    betas: [0.9, 0.95]    # Slightly less momentum for stability
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: true
+    type: "cosine"
+    min_lr: 5e-6
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 8
+    min_delta: 0.01
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 0.8
+  
+  # Checkpointing
+  save_every_n_epochs: 5
+  save_best_only: true
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 2  # Simulate batch_size=24
+  mixed_precision: false
+  compile_model: false
+
+# Optimized loss weighting
+loss_weights:
+  abr_reconstruction: 1.0
+  static_params: 1.5      # Moderate importance
+  peak_prediction: 1.2    # Moderate importance
+  masked_features: 0.3
+
+# Logging and monitoring
+logging:
+  log_every_n_steps: 50
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 5
+  num_generated_samples: 8
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: true
+    log_histograms: false
+    log_embeddings: false
+  
+  # Wandb logging
+  wandb:
+    enabled: false
+
+# Generation configuration
+generation:
+  num_samples: 12
+  temperature: 0.9        # Slightly focused generation
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.4
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: true
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# CPU training
+num_workers: 0
+device: "cpu" 

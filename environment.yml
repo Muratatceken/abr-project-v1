@@ -1,0 +1,48 @@
+name: abr_project
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+
+dependencies:
+  # Python version
+  - python=3.9
+
+  # Core scientific computing
+  - numpy>=1.19.2
+  - scipy>=1.6.0
+  - pandas>=1.2.0
+
+  # Machine learning
+  - scikit-learn>=0.24.0
+  - pytorch>=1.9.0
+  - torchvision
+  - torchaudio
+
+  # Data processing and Excel support
+  - openpyxl
+  - xlrd
+  - xlsxwriter
+
+  # Visualization
+  - matplotlib>=3.3.0
+  - seaborn
+  - plotly
+
+  # Development and utilities
+  - jupyter
+  - ipykernel
+  - notebook
+  - jupyterlab
+
+  # Configuration and logging
+  - pyyaml>=5.4.0
+  - tqdm
+  - colorama
+
+  # Pip dependencies (packages not available in conda)
+  - pip
+  - pip:
+    - tensorboard>=2.5.0
+    - tabulate>=0.8.9
+    - torch-audio  # Additional audio processing if needed 

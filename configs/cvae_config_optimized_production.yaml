@@ -1,0 +1,110 @@
+# CVAE Optimized Production Configuration for ABR Data
+# Based on analysis of initial training results and best practices
+
+# Data configuration
+data:
+  sequence_length: 200       # Length of ABR waveform sequences
+  channels: 1                # Single channel ABR data
+  train_split: 0.7          # Training data split
+  val_split: 0.15           # Validation data split
+  test_split: 0.15          # Test data split
+  random_state: 42          # Random seed for reproducibility
+  augment_train: true       # Enable data augmentation for training
+  augment_prob: 0.3         # Reduced augmentation probability
+  noise_std: 0.005          # Reduced noise for better signal preservation
+  time_shift_max: 20        # Reduced time shift for ABR data
+
+# Model architecture configuration - Optimized for ABR data
+model:
+  static_dim: 4             # Dimension of static parameters (age, intensity, stimulus_rate, hear_loss)
+  input_dim: 1              # Input dimension (single channel)
+  latent_dim: 64            # Reduced latent dimension for better training
+  condition_dim: 64         # Reduced condition embedding dimension
+  hidden_dim: 128           # Reduced hidden layer dimension
+  num_encoder_layers: 3     # Reduced number of transformer encoder layers
+  num_decoder_layers: 3     # Reduced number of transformer decoder layers
+  num_heads: 4              # Reduced number of attention heads
+  dropout: 0.15             # Increased dropout for regularization
+  sequence_length: 200      # Sequence length (should match data.sequence_length)
+  beta: 0.0                 # Initial KL divergence weight
+
+# Training configuration - Optimized for stability and performance
+training:
+  epochs: 150               # Sufficient epochs for convergence
+  batch_size: 16            # Increased batch size for better gradient estimates
+  initial_beta: 0.0         # Start with no KL penalty
+  final_beta: 0.01          # Much lower final beta to prevent KL collapse
+  beta_annealing_epochs: 100 # Slower beta annealing
+  early_stopping_patience: 25  # Increased patience
+  checkpoint_interval: 10   # Save checkpoint every N epochs
+  sample_interval: 15       # Generate samples every N epochs
+  log_interval: 50          # More frequent logging
+  output_dir: "outputs_production"  # Separate output directory
+  
+  # Optimizer configuration - Optimized learning rate and schedule
+  optimizer:
+    type: "adamw"           # AdamW with weight decay
+    lr: 0.0003              # Lower initial learning rate
+    weight_decay: 0.01      # Increased weight decay for regularization
+    betas: [0.9, 0.95]      # Adjusted beta parameters
+    eps: 1e-8               # Adam epsilon
+  
+  # Learning rate scheduler - More conservative
+  scheduler:
+    enabled: true           # Enable learning rate scheduling
+    type: "plateau"         # Use plateau scheduler for adaptive LR
+    factor: 0.7             # Reduce LR by 30% when plateau
+    patience: 8             # Wait 8 epochs before reducing LR
+    min_lr: 1e-6            # Minimum learning rate
+  
+  # Gradient clipping - More conservative
+  gradient_clipping:
+    enabled: true           # Enable gradient clipping
+    max_norm: 0.5           # Lower gradient norm for stability
+
+# Advanced training settings
+advanced:
+  gradient_accumulation_steps: 2  # Effective batch size = 16 * 2 = 32
+  warmup_epochs: 5               # Learning rate warmup
+  label_smoothing: 0.0           # No label smoothing for VAE
+  
+# Debug settings for monitoring
+debug:
+  loss_component_tracking: true   # Track detailed loss components
+  check_nan: true                # Check for NaN values
+  save_gradients: false          # Don't save gradients (memory intensive)
+
+# Beta schedule configuration - Custom gradual annealing
+beta_schedule:
+  type: "custom"
+  schedule:
+    - epoch: 0
+      beta: 0.0
+    - epoch: 20
+      beta: 0.0001
+    - epoch: 40
+      beta: 0.001
+    - epoch: 60
+      beta: 0.003
+    - epoch: 80
+      beta: 0.006
+    - epoch: 100
+      beta: 0.01
+
+# Evaluation configuration
+evaluation:
+  num_reconstruction_samples: 500     # Reduced for faster evaluation
+  num_generation_samples: 500        # Reduced for faster evaluation
+  samples_per_condition: 3           # Reduced samples per condition
+  num_interpolations: 5              # Reduced interpolations
+  num_latent_samples: 500            # Reduced latent samples
+
+# M1 Optimization settings
+m1_optimizations:
+  use_mps: false            # Disabled for stability
+  optimize_memory: true     # Enable memory optimizations
+  use_mixed_precision: false # Disabled for stability
+  compile_model: false      # Disabled for debugging
+
+# Data directory
+data_dir: "data/processed" 

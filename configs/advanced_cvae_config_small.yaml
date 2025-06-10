@@ -1,0 +1,126 @@
+# Advanced CVAE Configuration - Small Test Version
+# Reduced configuration for initial testing on M1/M2 Macs
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: false  # Disable for initial test
+  noise_std: 0.01
+  time_shift_max: 5
+
+# Model configuration
+model:
+  type: "advanced"
+  static_dim: 4
+  masked_features_dim: 32  # Reduced from 64
+  
+  # Smaller hierarchical latent dimensions
+  waveform_latent_dim: 32  # Reduced from 64
+  peak_latent_dim: 16     # Reduced from 32
+  
+  condition_dim: 64       # Reduced from 128
+  hidden_dim: 128         # Reduced from 256
+  
+  # Smaller architecture
+  num_encoder_layers: 2   # Reduced from 4
+  num_decoder_layers: 3   # Reduced from 6
+  num_heads: 4           # Reduced from 8
+  dropout: 0.1
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.05  # Reduced
+
+# Training configuration
+training:
+  epochs: 10  # Small test
+  batch_size: 8  # Smaller batch size
+  
+  # Hierarchical beta values
+  beta_waveform: 0.5  # Reduced for stability
+  beta_peak: 0.25
+  
+  # Beta annealing
+  initial_beta: 0.0
+  final_beta: 0.5
+  beta_annealing_epochs: 5
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adam"  # Standard Adam
+    lr: 0.001     # Higher LR for faster convergence
+    weight_decay: 0.001  # Reduced
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: false  # Disable for initial test
+    type: "cosine"
+    min_lr: 1e-6
+  
+  # Early stopping
+  early_stopping:
+    enabled: false  # Disable for test
+    patience: 30
+    min_delta: 0.001
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 0.5  # Stricter clipping
+  
+  # Checkpointing
+  save_every_n_epochs: 5
+  save_best_only: true
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 2  # Simulate larger batch
+  mixed_precision: false
+  compile_model: false
+
+# Logging and monitoring
+logging:
+  log_every_n_steps: 20
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 5
+  num_generated_samples: 4
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: true
+    log_histograms: false  # Disable for speed
+    log_embeddings: false
+  
+  # Wandb logging
+  wandb:
+    enabled: false
+
+# Generation configuration
+generation:
+  num_samples: 8
+  temperature: 1.0
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.5
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: false
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# Reduced workers for stability
+num_workers: 0  # Use main thread only 

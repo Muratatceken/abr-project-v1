@@ -1,0 +1,39 @@
+graph TD
+    %% FiLM Mechanism Deep Dive
+    INPUT["Input Features<br/>h ∈ ℝᵇˣᶠˣᵗ<br/>(Batch × Features × Time)"] --> COND["Conditioning Input<br/>c ∈ ℝᶜ<br/>(Condition Vector)"]
+    
+    COND --> GAMMA_NET["γ Network<br/>Linear(c_dim → hidden)<br/>ReLU<br/>Linear(hidden → f_dim)"]
+    COND --> BETA_NET["β Network<br/>Linear(c_dim → hidden)<br/>ReLU<br/>Linear(hidden → f_dim)"]
+    
+    GAMMA_NET --> GAMMA["Scaling Factors<br/>γ ∈ ℝᶠ<br/>(Per-feature scaling)"]
+    BETA_NET --> BETA["Shift Factors<br/>β ∈ ℝᶠ<br/>(Per-feature bias)"]
+    
+    INPUT --> MODULATION["FiLM Modulation<br/>h_out = γ ⊙ h + β<br/>Element-wise operation"]
+    GAMMA --> MODULATION
+    BETA --> MODULATION
+    
+    MODULATION --> OUTPUT["Modulated Features<br/>h_out ∈ ℝᵇˣᶠˣᵗ<br/>(Condition-aware features)"]
+    
+    %% Mathematical Details
+    MATH["Mathematical Formulation<br/>─────────────────────<br/>For each feature dimension i:<br/>h_out[i] = γ[i] × h[i] + β[i]<br/><br/>Where:<br/>• γ[i] controls feature importance<br/>• β[i] shifts feature distribution<br/>• Both depend on condition c"]
+    
+    %% Benefits Box
+    BENEFITS["FiLM Benefits<br/>─────────────<br/>✓ Condition-aware modulation<br/>✓ Learnable feature control<br/>✓ Computational efficiency<br/>✓ Gradient flow preservation<br/>✓ Flexible conditioning<br/>✓ Domain adaptation"]
+    
+    %% Example Values
+    EXAMPLE["Example Application<br/>───────────────────<br/>Condition: Age = 65, Hearing Loss = Mild<br/>↓<br/>γ = [1.2, 0.8, 1.5, ...] (amplify/suppress)<br/>β = [0.1, -0.3, 0.0, ...] (shift baseline)<br/>↓<br/>Age-specific feature adaptation"]
+    
+    %% Styling
+    classDef input fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef network fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef param fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef operation fill:#e8f5e8,stroke:#388e3c,stroke-width:3px
+    classDef output fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef info fill:#f5f5f5,stroke:#424242,stroke-width:1px
+    
+    class INPUT,COND input
+    class GAMMA_NET,BETA_NET network
+    class GAMMA,BETA param
+    class MODULATION operation
+    class OUTPUT output
+    class MATH,BENEFITS,EXAMPLE info

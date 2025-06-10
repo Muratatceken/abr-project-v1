@@ -1,0 +1,128 @@
+# Advanced CVAE Configuration
+# Enhanced configuration for the Advanced Conditional VAE with hierarchical latents
+
+# Data configuration
+data:
+  sequence_length: 200
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  random_state: 42
+  augment_train: true
+  noise_std: 0.01
+  time_shift_max: 10
+
+# Model configuration
+model:
+  type: "advanced"  # "original" or "advanced"
+  static_dim: 4
+  masked_features_dim: 64
+  
+  # Hierarchical latent dimensions
+  waveform_latent_dim: 64
+  peak_latent_dim: 32
+  
+  condition_dim: 128
+  hidden_dim: 256
+  
+  # Architecture parameters
+  num_encoder_layers: 4
+  num_decoder_layers: 6
+  num_heads: 8
+  dropout: 0.1
+  
+  # Advanced features
+  use_conditional_prior: true
+  noise_augmentation: 0.1
+
+# Training configuration
+training:
+  epochs: 200
+  batch_size: 16
+  
+  # Hierarchical beta values
+  beta_waveform: 1.0
+  beta_peak: 0.5
+  
+  # Beta annealing (for backward compatibility)
+  initial_beta: 0.0
+  final_beta: 1.0
+  beta_annealing_epochs: 100
+  
+  # Optimizer configuration
+  optimizer:
+    type: "adamw"
+    lr: 0.0001
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+    eps: 1e-8
+  
+  # Scheduler configuration
+  scheduler:
+    enabled: true
+    type: "cosine"  # "cosine", "step", "plateau"
+    min_lr: 1e-6
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    patience: 30
+    min_delta: 0.001
+  
+  # Gradient clipping
+  gradient_clipping:
+    enabled: true
+    max_norm: 1.0
+  
+  # Checkpointing
+  save_every_n_epochs: 10
+  save_best_only: false
+
+# Advanced training features
+advanced:
+  gradient_accumulation_steps: 1
+  mixed_precision: false
+  compile_model: false
+
+# Logging and monitoring
+logging:
+  log_every_n_steps: 50
+  validate_every_n_epochs: 1
+  generate_samples_every_n_epochs: 10
+  num_generated_samples: 8
+  
+  # TensorBoard logging
+  tensorboard:
+    enabled: true
+    log_histograms: true
+    log_embeddings: false
+  
+  # Wandb logging (optional)
+  wandb:
+    enabled: false
+    project: "abr-cvae"
+    entity: null
+
+# Generation configuration
+generation:
+  num_samples: 16
+  temperature: 1.0
+  use_conditioning: true
+  
+  # Peak detection settings
+  peak_detection:
+    enabled: true
+    confidence_threshold: 0.5
+
+# Debug configuration
+debug:
+  check_gradients: false
+  log_model_stats: false
+  save_intermediate_outputs: false
+  detect_anomaly: false
+
+# Data directory
+data_dir: "data/processed"
+
+# Number of workers for data loading
+num_workers: 4 

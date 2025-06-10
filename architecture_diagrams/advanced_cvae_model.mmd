@@ -1,0 +1,45 @@
+graph TD
+    %% Input Layer
+    X["Input Data<br/>(x)"] --> ENC["Encoder Network<br/>(Deep Neural Network)"]
+    C["Condition/Label<br/>(c)"] --> ENC
+    
+    %% Encoder to Latent Space
+    ENC --> MU["Mean (μ)<br/>Linear Layer"]
+    ENC --> SIGMA["Log Variance (log σ²)<br/>Linear Layer"]
+    
+    %% Latent Space and Sampling
+    MU --> SAMPLE["Reparameterization<br/>z = μ + σ ⊙ ε<br/>ε ~ N(0,I)"]
+    SIGMA --> SAMPLE
+    NOISE["Random Noise<br/>ε ~ N(0,I)"] --> SAMPLE
+    
+    %% Decoder Path
+    SAMPLE --> Z["Latent Variable<br/>(z)"]
+    Z --> DEC["Decoder Network<br/>(Deep Neural Network)"]
+    C --> DEC
+    
+    %% Output
+    DEC --> XHAT["Reconstructed Output<br/>(x̂)"]
+    
+    %% Loss Components
+    XHAT --> RECON["Reconstruction Loss<br/>L_recon = -E[log p(x|z,c)]"]
+    MU --> KLD["KL Divergence<br/>L_KL = KL(q(z|x,c)||p(z))"]
+    SIGMA --> KLD
+    
+    %% Total Loss
+    RECON --> LOSS["Total Loss<br/>L = L_recon + β × L_KL"]
+    KLD --> LOSS
+    
+    %% Style the nodes
+    classDef input fill:#e1f5fe
+    classDef encoder fill:#f3e5f5
+    classDef latent fill:#fff3e0
+    classDef decoder fill:#e8f5e8
+    classDef output fill:#fce4ec
+    classDef loss fill:#ffebee
+    
+    class X,C input
+    class ENC,MU,SIGMA encoder
+    class SAMPLE,Z,NOISE latent
+    class DEC decoder
+    class XHAT output
+    class RECON,KLD,LOSS loss

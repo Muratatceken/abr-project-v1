@@ -1,0 +1,107 @@
+# Optimized CVAE Configuration for ABR Synthetic Data Generation
+# Based on analysis of previous training runs - optimized for better convergence
+
+# Data configuration
+data:
+  sequence_length: 200       # Length of ABR waveform sequences
+  channels: 2                # Number of channels (left/right ear)
+  train_split: 0.7          # Training data split
+  val_split: 0.15           # Validation data split
+  test_split: 0.15          # Test data split
+  random_state: 42          # Random seed for reproducibility
+  augment_train: true       # Enable data augmentation for training
+  augment_prob: 0.3         # Reduced augmentation probability for stability
+  noise_std: 0.005          # Reduced noise for more stable training
+  time_shift_max: 20        # Reduced time shift for better alignment
+
+# Model architecture configuration - Optimized for better performance
+model:
+  static_dim: 4             # Dimension of static parameters (age, intensity, stimulus_rate, hear_loss)
+  input_dim: 2              # Input dimension (channels)
+  latent_dim: 64            # Reduced latent space for better training stability
+  condition_dim: 64         # Reduced condition embedding dimension
+  hidden_dim: 128           # Reduced hidden layer dimension for efficiency
+  num_encoder_layers: 3     # Reduced layers for faster training
+  num_decoder_layers: 3     # Reduced layers for faster training
+  num_heads: 4              # Reduced attention heads
+  dropout: 0.15             # Increased dropout for better regularization
+  sequence_length: 200      # Sequence length (should match data.sequence_length)
+  beta: 1.0                 # Initial KL divergence weight
+
+# Training configuration - Optimized for better convergence
+training:
+  epochs: 150               # Increased epochs for better convergence
+  batch_size: 16            # Reduced batch size for more stable gradients
+  initial_beta: 0.0         # Start with no KL penalty
+  final_beta: 0.5           # Reduced final beta to prevent KL collapse
+  beta_annealing_epochs: 80 # Longer annealing period
+  early_stopping_patience: 25  # Increased patience
+  checkpoint_interval: 5    # More frequent checkpoints
+  sample_interval: 10       # More frequent sampling
+  log_interval: 50          # More frequent logging
+  output_dir: "outputs"     # Output directory for results
+  
+  # Optimizer configuration - More conservative settings
+  optimizer:
+    type: "adamw"           # AdamW for better regularization
+    lr: 0.0003              # Reduced learning rate for stability
+    weight_decay: 0.001     # Increased weight decay for regularization
+    betas: [0.9, 0.999]     # Standard Adam betas
+    eps: 1e-8               # Adam epsilon
+  
+  # Learning rate scheduler - Warm restart for better convergence
+  scheduler:
+    enabled: true           # Enable learning rate scheduling
+    type: "cosine"          # Cosine annealing with warm restarts
+    min_lr: 1e-7            # Lower minimum learning rate
+    warmup_epochs: 10       # Warmup period for stable start
+  
+  # Gradient clipping - More aggressive clipping
+  gradient_clipping:
+    enabled: true           # Enable gradient clipping
+    max_norm: 0.5           # Reduced max norm for stability
+
+# Loss configuration - Better balance between reconstruction and KL
+loss:
+  reconstruction_weight: 1.0    # Standard reconstruction weight
+  kl_weight_schedule: "linear"  # Linear KL weight scheduling
+  kl_warmup_epochs: 20         # KL warmup period
+  reconstruction_loss: "mse"    # Mean squared error for reconstruction
+  kl_free_bits: 0.5            # Free bits to prevent posterior collapse
+
+# Evaluation configuration
+evaluation:
+  num_reconstruction_samples: 500     # Reduced for faster evaluation
+  num_generation_samples: 500        # Reduced for faster evaluation
+  samples_per_condition: 3           # Reduced samples per condition
+  num_interpolations: 5              # Reduced interpolations
+  num_latent_samples: 500            # Reduced latent samples
+  evaluation_interval: 10            # Evaluate every 10 epochs
+
+# Regularization techniques
+regularization:
+  spectral_norm: false              # Disable spectral norm for now
+  batch_norm: true                  # Enable batch normalization
+  layer_norm: true                  # Enable layer normalization
+  label_smoothing: 0.1              # Label smoothing for better generalization
+
+# M1 Optimization settings
+m1_optimizations:
+  use_mps: false            # Disable MPS due to compatibility issues
+  optimize_memory: true     # Enable memory optimizations
+  use_mixed_precision: false # Disable mixed precision for stability
+  compile_model: false      # Disable compilation for debugging
+
+# Advanced training techniques
+advanced:
+  gradient_accumulation_steps: 2    # Accumulate gradients for larger effective batch size
+  ema_decay: 0.999                 # Exponential moving average for model weights
+  use_ema: true                    # Enable EMA for better stability
+  cyclical_beta: false             # Disable cyclical beta for now
+  
+# Data preprocessing
+preprocessing:
+  normalize_inputs: true           # Normalize input data
+  standardize_targets: true        # Standardize target values
+  clip_outliers: true             # Clip extreme values
+  outlier_threshold: 3.0          # Standard deviations for outlier clipping 

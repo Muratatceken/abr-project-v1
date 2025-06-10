@@ -1,0 +1,111 @@
+graph TD
+    %% Input Processing
+    X["Input Data<br/>x ∈ ℝᵈˣʰˣʷ<br/>(e.g., 200×64 time series)"] --> XNORM["Input Normalization<br/>BatchNorm1d<br/>μ=0, σ=1"]
+    C["Condition Vector<br/>c ∈ ℝᶜ<br/>(e.g., age, hearing loss)"] --> CEMB["Condition Embedding<br/>Linear: c → 128<br/>ReLU + Dropout(0.1)"]
+    
+    %% Encoder Network - Detailed Layers
+    XNORM --> ENC1["Encoder Layer 1<br/>Conv1d: d → 64<br/>Kernel=3, Stride=1<br/>BatchNorm + ReLU"]
+    ENC1 --> ENC2["Encoder Layer 2<br/>Conv1d: 64 → 128<br/>Kernel=3, Stride=2<br/>BatchNorm + ReLU"]
+    ENC2 --> ENC3["Encoder Layer 3<br/>Conv1d: 128 → 256<br/>Kernel=3, Stride=2<br/>BatchNorm + ReLU"]
+    
+    %% FiLM Conditioning in Encoder
+    CEMB --> FILM1["FiLM Layer 1<br/>γ₁, β₁ = Linear(c_emb)<br/>h₁ = γ₁ ⊙ h + β₁"]
+    ENC1 --> FILM1
+    FILM1 --> ENC1_OUT["Modulated Features<br/>h₁_mod ∈ ℝ⁶⁴"]
+    
+    CEMB --> FILM2["FiLM Layer 2<br/>γ₂, β₂ = Linear(c_emb)<br/>h₂ = γ₂ ⊙ h + β₂"]
+    ENC2 --> FILM2
+    FILM2 --> ENC2_OUT["Modulated Features<br/>h₂_mod ∈ ℝ¹²⁸"]
+    
+    CEMB --> FILM3["FiLM Layer 3<br/>γ₃, β₃ = Linear(c_emb)<br/>h₃ = γ₃ ⊙ h + β₃"]
+    ENC3 --> FILM3
+    FILM3 --> ENC3_OUT["Modulated Features<br/>h₃_mod ∈ ℝ²⁵⁶"]
+    
+    %% Global Pooling and Flattening
+    ENC3_OUT --> POOL["Global Average Pooling<br/>AdaptiveAvgPool1d(1)<br/>256 → 256"]
+    POOL --> FLAT["Flatten<br/>Reshape: [B,256,1] → [B,256]"]
+    
+    %% Latent Variable Generation
+    FLAT --> MU_FC["μ Network<br/>Linear: 256 → 128<br/>ReLU + Dropout(0.2)<br/>Linear: 128 → z_dim"]
+    FLAT --> SIGMA_FC["σ² Network<br/>Linear: 256 → 128<br/>ReLU + Dropout(0.2)<br/>Linear: 128 → z_dim"]
+    
+    MU_FC --> MU["Mean Vector<br/>μ ∈ ℝᶻ<br/>(z_dim = 32)"]
+    SIGMA_FC --> LOGSIGMA["Log Variance<br/>log σ² ∈ ℝᶻ<br/>(z_dim = 32)"]
+    
+    %% Reparameterization Trick
+    MU --> REPARAM["Reparameterization<br/>z = μ + σ ⊙ ε<br/>where σ = exp(½log σ²)<br/>ε ~ N(0,I)"]
+    LOGSIGMA --> REPARAM
+    NOISE["Random Noise<br/>ε ~ N(0,I)<br/>ε ∈ ℝᶻ"] --> REPARAM
+    
+    REPARAM --> Z["Latent Code<br/>z ∈ ℝᶻ<br/>(Learned Representation)"]
+    
+    %% Decoder Network - Detailed Layers
+    Z --> ZPROJ["Latent Projection<br/>Linear: z_dim → 256<br/>ReLU + BatchNorm"]
+    CEMB --> CPROJ["Condition Projection<br/>Linear: 128 → 256<br/>ReLU + BatchNorm"]
+    
+    %% Fusion of Latent and Condition
+    ZPROJ --> FUSION["Feature Fusion<br/>z_proj ⊕ c_proj<br/>Concatenate: [B,512]"]
+    CPROJ --> FUSION
+    
+    FUSION --> DEC0["Decoder Preprocessing<br/>Linear: 512 → 256<br/>ReLU + Dropout(0.1)<br/>Reshape: [B,256,1]"]
+    
+    %% FiLM in Decoder
+    CPROJ --> FILM_DEC1["FiLM Decoder 1<br/>γ₄, β₄ = Linear(c_proj)<br/>h₄ = γ₄ ⊙ h + β₄"]
+    DEC0 --> DEC1["Decoder Layer 1<br/>ConvTranspose1d<br/>256 → 128, K=3, S=2<br/>BatchNorm + ReLU"]
+    DEC1 --> FILM_DEC1
+    FILM_DEC1 --> DEC1_OUT["Modulated Features<br/>h₄_mod ∈ ℝ¹²⁸"]
+    
+    CPROJ --> FILM_DEC2["FiLM Decoder 2<br/>γ₅, β₅ = Linear(c_proj)<br/>h₅ = γ₅ ⊙ h + β₅"]
+    DEC1_OUT --> DEC2["Decoder Layer 2<br/>ConvTranspose1d<br/>128 → 64, K=3, S=2<br/>BatchNorm + ReLU"]
+    DEC2 --> FILM_DEC2
+    FILM_DEC2 --> DEC2_OUT["Modulated Features<br/>h₅_mod ∈ ℝ⁶⁴"]
+    
+    CPROJ --> FILM_DEC3["FiLM Decoder 3<br/>γ₆, β₆ = Linear(c_proj)<br/>h₆ = γ₆ ⊙ h + β₆"]
+    DEC2_OUT --> DEC3["Decoder Layer 3<br/>ConvTranspose1d<br/>64 → 32, K=3, S=1<br/>BatchNorm + ReLU"]
+    DEC3 --> FILM_DEC3
+    FILM_DEC3 --> DEC3_OUT["Modulated Features<br/>h₆_mod ∈ ℝ³²"]
+    
+    %% Output Layer
+    DEC3_OUT --> OUTPUT_LAYER["Output Layer<br/>Conv1d: 32 → d<br/>Kernel=1<br/>No Activation"]
+    OUTPUT_LAYER --> XHAT["Reconstructed Output<br/>x̂ ∈ ℝᵈˣʰˣʷ<br/>(Same shape as input)"]
+    
+    %% Loss Computation - Detailed
+    XHAT --> MSE["Reconstruction Loss<br/>L_recon = ||x - x̂||²<br/>Mean Squared Error"]
+    X --> MSE
+    
+    MU --> KLD_COMP["KL Divergence<br/>L_KL = ½∑(μ² + σ² - log σ² - 1)<br/>Regularization Term"]
+    LOGSIGMA --> KLD_COMP
+    
+    %% Beta Annealing
+    KLD_COMP --> BETA["β-Annealing<br/>β(t) = min(1, t/T)<br/>Gradual KL weighting"]
+    
+    %% Total Loss
+    MSE --> TOTAL_LOSS["Total Loss<br/>L = L_recon + β(t) × L_KL<br/>Balanced Objective"]
+    BETA --> TOTAL_LOSS
+    
+    %% FiLM Explanation Box
+    FILM_EXPLANATION["FiLM Mechanism Explanation<br/>Feature-wise Linear Modulation<br/>─────────────────────────<br/>• γ (gamma): Scaling parameter<br/>• β (beta): Shift parameter<br/>• Operation: h_out = γ ⊙ h_in + β<br/>• Purpose: Condition-aware feature modulation<br/>• Benefits: Better conditioning integration"]
+    
+    %% Architecture Statistics
+    STATS["Architecture Statistics<br/>─────────────────────<br/>• Encoder Layers: 3 Conv1D + 3 FiLM<br/>• Decoder Layers: 3 ConvTranspose1D + 3 FiLM<br/>• Latent Dimension: 32<br/>• Condition Embedding: 128<br/>• FiLM Parameters: 6 × (2 × feature_dim)<br/>• Total Parameters: ~850K<br/>• Memory Efficient: O(N log N)"]
+    
+    %% Styling
+    classDef input fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef condition fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef encoder fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef film fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    classDef latent fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef decoder fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    classDef output fill:#f1f8e9,stroke:#689f38,stroke-width:2px
+    classDef loss fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef info fill:#f5f5f5,stroke:#424242,stroke-width:1px
+    
+    class X,XNORM input
+    class C,CEMB,CPROJ condition
+    class ENC1,ENC2,ENC3,POOL,FLAT,MU_FC,SIGMA_FC encoder
+    class FILM1,FILM2,FILM3,FILM_DEC1,FILM_DEC2,FILM_DEC3 film
+    class MU,LOGSIGMA,REPARAM,Z,NOISE latent
+    class ZPROJ,FUSION,DEC0,DEC1,DEC2,DEC3,DEC1_OUT,DEC2_OUT,DEC3_OUT decoder
+    class OUTPUT_LAYER,XHAT output
+    class MSE,KLD_COMP,BETA,TOTAL_LOSS loss
+    class FILM_EXPLANATION,STATS info
